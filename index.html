@@ -11,39 +11,22 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-check-compat.js"></script>
-
 
     <script>
         // IMPORTANT: REPLACE WITH YOUR FIREBASE PROJECT CONFIGURATION
         const firebaseConfig = {
-            apiKey: "AIzaSyBGdgWD9DDNODqHeLdIVaeuQZ2Zqw-UhOE", // User has already updated this
-            authDomain: "workouttrackerapp-eb39e.firebaseapp.com", // User has already updated this
-            projectId: "workouttrackerapp-eb39e", // User has already updated this
-            storageBucket: "workouttrackerapp-eb39e.firebasestorage.app", // User has already updated this
-            messagingSenderId: "15067524002", // User has already updated this
-            appId: "1:15067524002:web:24d67012efb0895cdea0fb" // User has already updated this
+            apiKey: "AIzaSyBGdgWD9DDNODqHeLdIVaeuQZ2Zqw-UhOE",
+            authDomain: "workouttrackerapp-eb39e.firebaseapp.com",
+            projectId: "workouttrackerapp-eb39e",
+            storageBucket: "workouttrackerapp-eb39e.firebasestorage.app",
+            messagingSenderId: "15067524002",
+            appId: "1:15067524002:web:24d67012efb0895cdea0fb"
         };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-
-        // Initialize App Check (after Firebase App is initialized)
-        // Ensure you have configured App Check in your Firebase console and have the reCAPTCHA v3 site key
-        try {
-            const appCheck = firebase.appCheck();
-            appCheck.activate(
-                'YOUR_RECAPTCHA_V3_SITE_KEY', // Replace with your reCAPTCHA v3 site key from Firebase Console
-                true
-            );
-            console.log("Firebase App Check activated.");
-        } catch (error) {
-            console.error("Error activating Firebase App Check: ", error);
-            // Handle error appropriately in a production app, e.g., by logging or informing the user if critical
-        }
-
         // Example Firestore Security Rules (set these in your Firebase Console):
         // rules_version = '2';
         // service cloud.firestore {
@@ -73,9 +56,24 @@
         .chart-container { height: 300px; width: 100%; }
         [data-auth-required] { display: none; } /* Hide sections requiring auth by default */
         
-        .dragging-item { opacity: 0.5; background-color: #e0e7ff; }
-        .drag-over-placeholder { background-color: #a5b4fc; height: 8px; margin-top: 4px; margin-bottom: 4px; border-radius: 4px; list-style-type: none !important; }
-        #weeklyScheduleContainer ul { min-height: 30px; }
+        /* Styles for drag and drop */
+        .dragging-item {
+            opacity: 0.5;
+            background-color: #e0e7ff; /* Light indigo for visual feedback */
+        }
+        .drag-over-placeholder {
+            background-color: #a5b4fc; /* Indigo 300 */
+            height: 8px; /* More visible placeholder */
+            margin-top: 4px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            list-style-type: none !important; 
+        }
+        /* Ensure weekly schedule ULs have some min height to be droppable when empty */
+        #weeklyScheduleContainer ul {
+            min-height: 30px; 
+        }
+
 
         @media (max-width: 768px) {
             .nav-button span:not(.auth-status-text) { display: none; }
@@ -100,32 +98,28 @@
                         <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
                         <input type="password" id="loginPassword" required class="mt-1 p-2 w-full border rounded-md focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
-                    <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-md hover:bg-indigo-700 transition">Login with Password</button>
-                    <p class="text-sm text-center">Or <a href="#" id="showPasswordlessLogin" class="font-medium text-indigo-600 hover:text-indigo-500">Login with Email Link</a></p>
+                    <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-md hover:bg-indigo-700 transition">Login</button>
                     <p class="text-sm text-center">Don't have an account? <a href="#" id="showSignup" class="font-medium text-indigo-600 hover:text-indigo-500">Sign up</a></p>
                 </form>
 
                 <form id="signupForm" class="space-y-4" style="display: none;">
-                    <h2 class="text-xl font-semibold text-gray-700 mb-3">Sign Up with Email Link</h2>
+                    <h2 class="text-xl font-semibold text-gray-700 mb-3">Sign Up</h2>
                     <div>
                         <label for="signupEmail" class="block text-sm font-medium text-gray-700">Email</label>
                         <input type="email" id="signupEmail" required class="mt-1 p-2 w-full border rounded-md focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
-                    <button type="submit" class="w-full bg-green-500 text-white p-3 rounded-md hover:bg-green-600 transition">Send Sign Up Link</button>
-                    <p class="text-sm text-center">Already have an account or want to login with password? <a href="#" id="showLoginFromSignup" class="font-medium text-indigo-600 hover:text-indigo-500">Login</a></p>
-                </form>
-
-                 <form id="passwordlessLoginForm" class="space-y-4" style="display: none;">
-                    <h2 class="text-xl font-semibold text-gray-700 mb-3">Login with Email Link</h2>
                     <div>
-                        <label for="passwordlessEmail" class="block text-sm font-medium text-gray-700">Email</label>
-                        <input type="email" id="passwordlessEmail" required class="mt-1 p-2 w-full border rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                        <label for="signupPassword" class="block text-sm font-medium text-gray-700">Password (min. 6 characters)</label>
+                        <input type="password" id="signupPassword" required class="mt-1 p-2 w-full border rounded-md focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
-                    <button type="submit" class="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 transition">Send Login Link</button>
-                    <p class="text-sm text-center">Want to use a password? <a href="#" id="showLoginFromPasswordless" class="font-medium text-indigo-600 hover:text-indigo-500">Login with Password</a></p>
+                     <div>
+                        <label for="signupUserWeight" class="block text-sm font-medium text-gray-700">Your Weight (kg) (Optional)</label>
+                        <input type="number" id="signupUserWeight" step="0.1" placeholder="e.g., 70" class="mt-1 p-2 w-full border rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <button type="submit" class="w-full bg-green-500 text-white p-3 rounded-md hover:bg-green-600 transition">Sign Up</button>
+                    <p class="text-sm text-center">Already have an account? <a href="#" id="showLogin" class="font-medium text-indigo-600 hover:text-indigo-500">Login</a></p>
                 </form>
             </div>
-            <p id="authMessage" class="text-green-600 text-sm mt-4 text-center"></p>
             <p id="authError" class="text-red-500 text-sm mt-4 text-center"></p>
         </div>
     </div>
@@ -191,7 +185,7 @@
                     <div class="bg-white p-6 rounded-lg shadow">
                         <h2 class="text-xl font-semibold mb-4">Set Weekly Schedule</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="weeklyScheduleContainer">
-                        </div>
+                            </div>
                     </div>
                 </div>
             </div>
@@ -288,8 +282,7 @@
 <script>
     // --- Globals and Constants ---
     const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-    const EMAIL_FOR_SIGN_IN_KEY = 'emailForSignIn'; // localStorage key
-    let appData = { 
+    let appData = { // Local cache for currently logged-in user's data
         exercises: [], 
         schedule: {},  
         logs: [],      
@@ -298,10 +291,12 @@
     let charts = {}; 
     let currentUser = null; 
 
-    let draggedLiElement = null; 
-    let dragSourceDay = null;    
-    let dragSourceIndex = -1;  
+    // --- Drag and Drop State ---
+    let draggedLiElement = null; // The LI element being dragged
+    let dragSourceDay = null;    // The original day of the dragged item
+    let dragSourceIndex = -1;  // The original index of the dragged item in its day's schedule
 
+    // --- Firebase Collection References ---
     const userCollections = {
         profile: () => db.collection('users').doc(currentUser.uid).collection('profile'),
         exercises: () => db.collection('users').doc(currentUser.uid).collection('exercises'),
@@ -309,31 +304,20 @@
         logs: () => db.collection('users').doc(currentUser.uid).collection('logs')
     };
 
+
     // --- Initialization and Auth State ---
     window.onload = () => {
         // Auth form toggling
-        document.getElementById('showSignup').addEventListener('click', (e) => { e.preventDefault(); showAuthForm('signup'); });
-        document.getElementById('showLoginFromSignup').addEventListener('click', (e) => { e.preventDefault(); showAuthForm('login'); });
-        document.getElementById('showPasswordlessLogin').addEventListener('click', (e) => { e.preventDefault(); showAuthForm('passwordlessLogin'); });
-        document.getElementById('showLoginFromPasswordless').addEventListener('click', (e) => { e.preventDefault(); showAuthForm('login'); });
-
+        document.getElementById('showSignup').addEventListener('click', (e) => { e.preventDefault(); toggleAuthForms(true); });
+        document.getElementById('showLogin').addEventListener('click', (e) => { e.preventDefault(); toggleAuthForms(false); });
 
         // Auth form submissions
-        document.getElementById('loginForm').addEventListener('submit', handlePasswordLogin);
-        document.getElementById('signupForm').addEventListener('submit', handleEmailLinkSignup);
-        document.getElementById('passwordlessLoginForm').addEventListener('submit', handlePasswordlessLoginRequest);
+        document.getElementById('loginForm').addEventListener('submit', handleLogin);
+        document.getElementById('signupForm').addEventListener('submit', handleSignup);
         document.getElementById('logoutButton').addEventListener('click', logoutUser);
-
-        // Handle Email Link Sign-In on page load
-        handleEmailLinkReturn(); 
 
         // Listen for auth state changes
         auth.onAuthStateChanged(async user => {
-            const authErrorEl = document.getElementById('authError');
-            const authMessageEl = document.getElementById('authMessage');
-            authErrorEl.textContent = ''; // Clear previous messages
-            authMessageEl.textContent = '';
-
             if (user) {
                 currentUser = user;
                 document.getElementById('userEmailDisplay').textContent = currentUser.email;
@@ -351,121 +335,9 @@
                 document.querySelectorAll('[data-auth-required]').forEach(el => el.style.display = 'none');
                 clearLocalDataCache(); 
                 resetUI(); 
-                // Show login form by default when logged out
-                showAuthForm('login');
             }
         });
     };
-    
-    function showAuthForm(formName) {
-        document.getElementById('loginForm').style.display = formName === 'login' ? 'block' : 'none';
-        document.getElementById('signupForm').style.display = formName === 'signup' ? 'block' : 'none';
-        document.getElementById('passwordlessLoginForm').style.display = formName === 'passwordlessLogin' ? 'block' : 'none';
-        document.getElementById('authError').textContent = '';
-        document.getElementById('authMessage').textContent = '';
-    }
-
-
-    async function handleEmailLinkReturn() {
-        const authErrorEl = document.getElementById('authError');
-        const authMessageEl = document.getElementById('authMessage');
-        authErrorEl.textContent = ''; 
-        authMessageEl.textContent = '';
-
-        if (auth.isSignInWithEmailLink(window.location.href)) {
-            let email = window.localStorage.getItem(EMAIL_FOR_SIGN_IN_KEY);
-            if (!email) {
-                email = window.prompt('Please provide your email for confirmation:');
-                if (!email) {
-                     authErrorEl.textContent = "Email is required to complete sign-in. Please try signing in again.";
-                     showAuthForm('login'); 
-                     return;
-                }
-            }
-            try {
-                const userCredential = await auth.signInWithEmailLink(email, window.location.href);
-                window.localStorage.removeItem(EMAIL_FOR_SIGN_IN_KEY); 
-                
-                if (userCredential.additionalUserInfo && userCredential.additionalUserInfo.isNewUser) {
-                    if (userCredential.user) {
-                         const initialProfile = { weightKg: 70, email: userCredential.user.email }; 
-                         await userCollections.profile().doc('info').set(initialProfile);
-                         appData.userProfile = initialProfile;
-                         console.log("New user profile created via email link.");
-                    }
-                }
-                window.history.replaceState({}, document.title, window.location.pathname);
-                authMessageEl.textContent = "Successfully signed in!";
-
-            } catch (error) {
-                console.error("Error signing in with email link:", error);
-                authErrorEl.textContent = "Error signing in: " + error.message + ". Please try again.";
-                window.localStorage.removeItem(EMAIL_FOR_SIGN_IN_KEY);
-                showAuthForm('login'); 
-            }
-        }
-    }
-
-
-    const actionCodeSettings = {
-        // UPDATE THIS URL TO YOUR HOSTED SITE DOMAIN
-        url: 'https://workout.aryanvala.site/', // Or 'https://workouttrackerapp-eb39e.web.app/' if that's your primary hosting URL
-        handleCodeInApp: true, 
-    };
-
-    async function handleEmailLinkSignup(e) {
-        e.preventDefault();
-        const email = document.getElementById('signupEmail').value;
-        const authErrorEl = document.getElementById('authError');
-        const authMessageEl = document.getElementById('authMessage');
-        authErrorEl.textContent = ''; 
-        authMessageEl.textContent = '';
-
-        try {
-            await auth.sendSignInLinkToEmail(email, actionCodeSettings);
-            window.localStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, email); 
-            authMessageEl.textContent = 'A sign-up link has been sent to your email. Please check your inbox (and spam folder) to complete registration.';
-            document.getElementById('signupForm').reset();
-        } catch (error) {
-            console.error("Error sending sign up link:", error);
-            authErrorEl.textContent = "Error sending sign-up link: " + error.message;
-        }
-    }
-    
-    async function handlePasswordlessLoginRequest(e) {
-        e.preventDefault();
-        const email = document.getElementById('passwordlessEmail').value;
-        const authErrorEl = document.getElementById('authError');
-        const authMessageEl = document.getElementById('authMessage');
-        authErrorEl.textContent = '';
-        authMessageEl.textContent = '';
-
-        try {
-            await auth.sendSignInLinkToEmail(email, actionCodeSettings);
-            window.localStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, email);
-            authMessageEl.textContent = 'A login link has been sent to your email. Please check your inbox (and spam folder).';
-            document.getElementById('passwordlessLoginForm').reset();
-        } catch (error) {
-            console.error("Error sending login link:", error);
-            authErrorEl.textContent = "Error sending login link: " + error.message;
-        }
-    }
-
-
-    async function handlePasswordLogin(e) { 
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        const authErrorEl = document.getElementById('authError');
-        authErrorEl.textContent = '';
-
-        try {
-            await auth.signInWithEmailAndPassword(email, password);
-        } catch (error) {
-            authErrorEl.textContent = "Login Error: " + error.message;
-        }
-    }
-
 
     function initAppEventListeners() {
         document.getElementById('workoutDate').addEventListener('change', renderDailyExercisesForLog);
@@ -473,6 +345,49 @@
         document.getElementById('progressExerciseSelect').addEventListener('change', renderExerciseProgressChart);
         initWorkoutDate();
         initDashboardMonth();
+    }
+
+    function toggleAuthForms(showSignup) {
+        document.getElementById('loginForm').style.display = showSignup ? 'none' : 'block';
+        document.getElementById('signupForm').style.display = showSignup ? 'block' : 'none';
+        document.getElementById('authError').textContent = '';
+    }
+
+    async function handleSignup(e) {
+        e.preventDefault();
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        const weight = parseFloat(document.getElementById('signupUserWeight').value);
+        const authError = document.getElementById('authError');
+        authError.textContent = '';
+
+        try {
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            currentUser = userCredential.user;
+            if (currentUser) {
+                const initialProfile = { weightKg: isNaN(weight) || weight <=0 ? 70 : weight, email: currentUser.email };
+                 await userCollections.profile().doc('info').set(initialProfile); 
+                appData.userProfile = initialProfile; 
+            }
+        } catch (error) {
+            authError.textContent = error.message;
+            showMessage("Signup Error: " + error.message);
+        }
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const authError = document.getElementById('authError');
+        authError.textContent = '';
+
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+        } catch (error) {
+            authError.textContent = error.message;
+            showMessage("Login Error: " + error.message);
+        }
     }
 
     async function logoutUser() {
@@ -547,7 +462,6 @@
             if (doc.exists) {
                 appData.userProfile = { ...appData.userProfile, ...doc.data() };
             } else {
-                console.log("Profile doc not found for user, creating default.");
                 const defaultProfile = { weightKg: 70, email: currentUser.email };
                 await userCollections.profile().doc('info').set(defaultProfile);
                 appData.userProfile = defaultProfile;
@@ -578,6 +492,7 @@
             const scheduleDoc = await userCollections.schedule().doc('weeklyPlan').get();
             if (scheduleDoc.exists) {
                 appData.schedule = scheduleDoc.data();
+                 // Ensure all days exist in the schedule object, even if empty
                 DAYS_OF_WEEK.forEach(day => {
                     if (!appData.schedule[day]) {
                         appData.schedule[day] = [];
@@ -786,7 +701,7 @@
     
     function renderWeeklySchedule() {
         const container = document.getElementById('weeklyScheduleContainer');
-        container.innerHTML = ''; 
+        container.innerHTML = ''; // Clear existing day cards
         DAYS_OF_WEEK.forEach(day => {
             const dayCard = document.createElement('div');
             dayCard.className = 'bg-gray-50 p-4 rounded-lg shadow-sm';
@@ -797,7 +712,7 @@
             
             const ul = dayCard.querySelector(`#schedule-${day.toLowerCase()}`);
             ul.addEventListener('dragover', handleDragOver);
-            ul.addEventListener('drop', (event) => handleDrop(event, day)); 
+            ul.addEventListener('drop', (event) => handleDrop(event, day)); // Pass the day name
 
             renderScheduledExercisesForDay(day);
         });
@@ -807,7 +722,7 @@
         const listId = `schedule-${day.toLowerCase()}`;
         const ul = document.getElementById(listId);
         if (!ul) return; 
-        ul.innerHTML = ''; 
+        ul.innerHTML = ''; // Clear existing items before re-rendering
         const daySchedule = appData.schedule[day] || [];
 
         if (daySchedule.length === 0) {
@@ -818,9 +733,9 @@
                 const li = document.createElement('li');
                 li.className = 'text-sm p-2 bg-white rounded shadow-xs flex justify-between items-center cursor-grab';
                 li.setAttribute('draggable', true);
-                li.dataset.index = index; 
-                li.dataset.day = day;     
-                li.dataset.exerciseId = item.exerciseId; 
+                li.dataset.index = index; // Store current index
+                li.dataset.day = day;     // Store current day
+                li.dataset.exerciseId = item.exerciseId; // Store exercise ID for data retrieval
 
                 if (exercise) {
                     li.innerHTML = `<span>${exercise.name} (${item.sets}s x ${item.reps}r)</span>
@@ -836,14 +751,16 @@
         }
     }
 
+    // Drag and Drop Handlers for Schedule
     function handleDragStart(event) {
-        draggedLiElement = event.target; 
+        draggedLiElement = event.target; // The LI element
         dragSourceDay = event.target.dataset.day;
         dragSourceIndex = parseInt(event.target.dataset.index);
         
         event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', event.target.dataset.exerciseId); 
+        event.dataTransfer.setData('text/plain', event.target.dataset.exerciseId); // Set some data (exerciseId)
 
+        // Add styling to the dragged item (timeout for browser to pick up drag image)
         setTimeout(() => {
             draggedLiElement.classList.add('dragging-item');
         }, 0);
@@ -853,6 +770,7 @@
         if (draggedLiElement) {
             draggedLiElement.classList.remove('dragging-item');
         }
+        // Clean up any placeholders that might be left
         document.querySelectorAll('.drag-over-placeholder').forEach(el => el.remove());
         
         draggedLiElement = null;
@@ -861,50 +779,58 @@
     }
 
     function handleDragOver(event) {
-        event.preventDefault(); 
+        event.preventDefault(); // Necessary to allow dropping
         event.dataTransfer.dropEffect = 'move';
 
-        const targetUl = event.currentTarget; 
-        const currentDragOverDay = targetUl.id.split('-')[1]; 
+        const targetUl = event.currentTarget; // The UL being dragged over
+        // Only allow dropping within the same day's list for this implementation
+        const currentDragOverDay = targetUl.id.split('-')[1]; // e.g. "monday"
         const properDragOverDayName = DAYS_OF_WEEK.find(d => d.toLowerCase() === currentDragOverDay);
 
         if (dragSourceDay !== properDragOverDayName) {
+             // Optional: Add visual cue that drop is not allowed here or simply do nothing
             return;
         }
 
+
+        // Remove existing placeholders to avoid duplicates
         targetUl.querySelectorAll('.drag-over-placeholder').forEach(ph => ph.remove());
 
         const afterElement = getDragAfterElement(targetUl, event.clientY);
-        const placeholder = document.createElement('div'); 
+        const placeholder = document.createElement('div'); // Use div for placeholder
         placeholder.classList.add('drag-over-placeholder');
         
-        if (afterElement == null) { 
+        if (afterElement == null) { // If no element to insert before, append to end
             targetUl.appendChild(placeholder);
         } else {
             targetUl.insertBefore(placeholder, afterElement);
         }
     }
     
+    // Helper function to determine where to insert the dragged item
     function getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('li:not(.dragging-item)')]; 
+        const draggableElements = [...container.querySelectorAll('li:not(.dragging-item)')]; // Get all LIs not being dragged
 
         return draggableElements.reduce((closest, child) => {
             const box = child.getBoundingClientRect();
-            const offset = y - box.top - (box.height / 2); 
+            const offset = y - box.top - (box.height / 2); // Distance from mouse to center of child
+            // If offset is negative (mouse is above center) and closer than previous closest
             if (offset < 0 && offset > closest.offset) {
                 return { offset: offset, element: child };
             } else {
                 return closest;
             }
-        }, { offset: Number.NEGATIVE_INFINITY }).element; 
+        }, { offset: Number.NEGATIVE_INFINITY }).element; // Start with furthest possible negative offset
     }
 
 
-    async function handleDrop(event, targetDayName) { 
+    async function handleDrop(event, targetDayName) { // targetDayName is passed from renderWeeklySchedule
         event.preventDefault();
-        document.querySelectorAll('.drag-over-placeholder').forEach(el => el.remove()); 
+        document.querySelectorAll('.drag-over-placeholder').forEach(el => el.remove()); // Clean up placeholder
 
         if (!draggedLiElement || dragSourceDay !== targetDayName) {
+            // If dragging from a different day, or something went wrong, abort.
+            // Cross-day drag-and-drop is not implemented here for simplicity.
             if (dragSourceDay !== targetDayName && draggedLiElement) {
                 showMessage("Cross-day dragging is not supported. Please add/remove manually.");
             }
@@ -917,38 +843,46 @@
             return;
         }
 
+        // Get the actual data object of the dragged item
         const draggedItemData = scheduleArray[dragSourceIndex];
         if (!draggedItemData) {
             console.error("Dragged item data not found at source index:", dragSourceIndex);
             return;
         }
 
-        const targetUl = event.currentTarget; 
+        // Determine the new index for the dropped item
+        const targetUl = event.currentTarget; // The UL where item was dropped
         const afterElement = getDragAfterElement(targetUl, event.clientY);
         let newIndex;
 
-        if (afterElement == null) { 
+        if (afterElement == null) { // Dropped at the end of the list
             newIndex = scheduleArray.length; 
-        } else { 
+        } else { // Dropped before 'afterElement'
             newIndex = parseInt(afterElement.dataset.index);
         }
         
+        // Remove item from its original position
         scheduleArray.splice(dragSourceIndex, 1);
 
+        // Adjust newIndex if the item was dragged from an earlier position to a later one
+        // within the same list, because splice has shifted indices.
         if (dragSourceIndex < newIndex) {
             newIndex--; 
         }
         
+        // Insert item at its new position
         scheduleArray.splice(newIndex, 0, draggedItemData);
 
+        // Update Firestore and UI
         try {
             await saveScheduleToFirestore();
-            renderScheduledExercisesForDay(targetDayName); 
+            renderScheduledExercisesForDay(targetDayName); // Re-render only the affected day's list
             showMessage('Schedule reordered successfully!');
         } catch (error) {
             showMessage('Error reordering schedule: ' + error.message);
-            await loadSchedule(); 
-            renderWeeklySchedule(); 
+            // Revert local changes and reload schedule from Firestore if save fails
+            await loadSchedule(); // This will reload the entire schedule
+            renderWeeklySchedule(); // Re-render all days to ensure consistency
         }
     }
 
@@ -979,6 +913,7 @@
     }
     
     async function removeExerciseFromDay(day, index) {
+        // Ensure index is a number, as it might come from dataset as string
         const numericIndex = parseInt(index);
         if (appData.schedule[day] && appData.schedule[day][numericIndex] !== undefined) {
             appData.schedule[day].splice(numericIndex, 1);
