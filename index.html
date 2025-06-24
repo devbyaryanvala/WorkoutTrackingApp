@@ -13,7 +13,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 
     <script>
-        // IMPORTANT: REPLACE WITH YOUR FIREBASE PROJECT CONFIGURATION
+
         const firebaseConfig = {
             apiKey: "AIzaSyBGdgWD9DDNODqHeLdIVaeuQZ2Zqw-UhOE",
             authDomain: "workouttrackerapp-eb39e.firebaseapp.com",
@@ -23,11 +23,10 @@
             appId: "1:15067524002:web:24d67012efb0895cdea0fb"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        
+
     </script>
 
     <style>
@@ -46,26 +45,24 @@
         .modal-content { background-color: #ffffff; margin: 10% auto; padding: 24px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .tab-button.active { border-bottom-color: #4F46E5; color: #4F46E5; font-weight: 600; }
         .chart-container { height: 300px; width: 100%; }
-        [data-auth-required] { display: none; } /* Hide sections requiring auth by default */
-        
-        /* Styles for drag and drop */
+        [data-auth-required] { display: none; } 
+
         .dragging-item {
             opacity: 0.5;
-            background-color: #e0e7ff; /* Light indigo for visual feedback */
+            background-color: #e0e7ff; 
         }
         .drag-over-placeholder {
-            background-color: #a5b4fc; /* Indigo 300 */
-            height: 8px; /* More visible placeholder */
+            background-color: #a5b4fc; 
+            height: 8px; 
             margin-top: 4px;
             margin-bottom: 4px;
             border-radius: 4px;
             list-style-type: none !important; 
         }
-        /* Ensure weekly schedule ULs have some min height to be droppable when empty */
+
         #weeklyScheduleContainer ul {
             min-height: 30px; 
         }
-
 
         @media (max-width: 768px) {
             .nav-button span:not(.auth-status-text) { display: none; }
@@ -221,7 +218,7 @@
                     <div class="chart-container"><canvas id="exerciseProgressChart"></canvas></div>
                 </div>
             </div>
-            
+
             <div id="profileView" class="view space-y-6" style="display: none;" data-auth-required>
                 <h1 class="text-3xl font-semibold text-gray-800">User Profile</h1>
                 <div class="bg-white p-6 rounded-lg shadow max-w-md mx-auto">
@@ -249,7 +246,7 @@
     </div>
 
     <div id="addExerciseToDayModal" class="modal"><div class="modal-content"> <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Add Exercise to <span id="modalDayName"></span></h3> <input type="hidden" id="modalDayOfWeek"><div><label for="modalExerciseSelect" class="block text-sm font-medium text-gray-700">Exercise:</label><select id="modalExerciseSelect" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select></div><div class="mt-4"><label for="modalSets" class="block text-sm font-medium text-gray-700">Sets:</label><input type="number" id="modalSets" value="3" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2"></div><div class="mt-4"><label for="modalReps" class="block text-sm font-medium text-gray-700">Reps per Set:</label><input type="number" id="modalReps" value="10" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2"></div><div class="mt-6 flex justify-end space-x-3"><button type="button" onclick="closeModal('addExerciseToDayModal')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">Cancel</button><button type="button" onclick="saveExerciseToDay()" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Add to Day</button></div></div></div>
-    
+
     <div id="editExerciseModal" class="modal">
         <div class="modal-content">
             <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Edit Exercise</h3>
@@ -272,9 +269,9 @@
     <div id="messageModal" class="modal"><div class="modal-content text-center"><p id="messageText" class="text-lg mb-4"></p><button onclick="closeModal('messageModal')" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700">OK</button></div></div>
 
 <script>
-    // --- Globals and Constants ---
+
     const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-    let appData = { // Local cache for currently logged-in user's data
+    let appData = { 
         exercises: [], 
         schedule: {},  
         logs: [],      
@@ -283,12 +280,10 @@
     let charts = {}; 
     let currentUser = null; 
 
-    // --- Drag and Drop State ---
-    let draggedLiElement = null; // The LI element being dragged
-    let dragSourceDay = null;    // The original day of the dragged item
-    let dragSourceIndex = -1;  // The original index of the dragged item in its day's schedule
+    let draggedLiElement = null; 
+    let dragSourceDay = null;    
+    let dragSourceIndex = -1;  
 
-    // --- Firebase Collection References ---
     const userCollections = {
         profile: () => db.collection('users').doc(currentUser.uid).collection('profile'),
         exercises: () => db.collection('users').doc(currentUser.uid).collection('exercises'),
@@ -296,19 +291,15 @@
         logs: () => db.collection('users').doc(currentUser.uid).collection('logs')
     };
 
-
-    // --- Initialization and Auth State ---
     window.onload = () => {
-        // Auth form toggling
+
         document.getElementById('showSignup').addEventListener('click', (e) => { e.preventDefault(); toggleAuthForms(true); });
         document.getElementById('showLogin').addEventListener('click', (e) => { e.preventDefault(); toggleAuthForms(false); });
 
-        // Auth form submissions
         document.getElementById('loginForm').addEventListener('submit', handleLogin);
         document.getElementById('signupForm').addEventListener('submit', handleSignup);
         document.getElementById('logoutButton').addEventListener('click', logoutUser);
 
-        // Listen for auth state changes
         auth.onAuthStateChanged(async user => {
             if (user) {
                 currentUser = user;
@@ -316,7 +307,7 @@
                 document.getElementById('authView').style.display = 'none';
                 document.getElementById('appContainer').style.display = 'flex'; 
                 document.querySelectorAll('[data-auth-required]').forEach(el => el.style.display = 'block'); 
-                
+
                 await loadAllUserData(); 
                 showView('setupView'); 
                 initAppEventListeners(); 
@@ -389,7 +380,7 @@
             showMessage("Logout Error: " + error.message);
         }
     }
-    
+
     function clearLocalDataCache() {
         appData = {
             exercises: [],
@@ -405,7 +396,7 @@
         if(scheduleContainer) scheduleContainer.innerHTML = ''; 
         const dailyExercisesContainer = document.getElementById('dailyExercisesContainer');
         if(dailyExercisesContainer) dailyExercisesContainer.innerHTML = '';
-        
+
         const statsTotalWeight = document.getElementById('statsTotalWeight');
         if(statsTotalWeight) statsTotalWeight.textContent = '0 kg';
         const statsTotalCalories = document.getElementById('statsTotalCalories');
@@ -419,15 +410,13 @@
             }
         });
         charts = {};
-        
+
         const progressExerciseSelect = document.getElementById('progressExerciseSelect');
         if(progressExerciseSelect) progressExerciseSelect.innerHTML = '<option value="">-- Select Exercise --</option>';
         const modalExerciseSelect = document.getElementById('modalExerciseSelect');
         if(modalExerciseSelect) modalExerciseSelect.innerHTML = '<option value="">-- Select Exercise --</option>';
     }
 
-
-    // --- Data Loading (from Firestore) ---
     async function loadAllUserData() {
         if (!currentUser) return;
         try {
@@ -484,7 +473,7 @@
             const scheduleDoc = await userCollections.schedule().doc('weeklyPlan').get();
             if (scheduleDoc.exists) {
                 appData.schedule = scheduleDoc.data();
-                 // Ensure all days exist in the schedule object, even if empty
+
                 DAYS_OF_WEEK.forEach(day => {
                     if (!appData.schedule[day]) {
                         appData.schedule[day] = [];
@@ -499,7 +488,7 @@
             DAYS_OF_WEEK.forEach(day => appData.schedule[day] = []); 
         }
     }
-    
+
     async function loadLogs() {
         if (!currentUser) return;
         appData.logs = [];
@@ -512,7 +501,6 @@
         }
     }
 
-    // --- UI Navigation & Modals ---
     function showView(viewId) {
         if (!currentUser && viewId !== 'authView') { 
             document.getElementById('authView').style.display = 'flex';
@@ -522,11 +510,11 @@
         document.querySelectorAll('.view').forEach(view => view.style.display = 'none');
         const targetView = document.getElementById(viewId);
         if (targetView) targetView.style.display = 'block';
-        
+
         document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
         const activeNavButton = document.querySelector(`.nav-button[onclick="showView('${viewId}')"]`);
         if (activeNavButton) activeNavButton.classList.add('active');
-        
+
         if (viewId === 'dashboardView') renderDashboard();
         if (viewId === 'logWorkoutView') {
             initWorkoutDate();
@@ -548,12 +536,11 @@
         document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
         buttonElement.classList.add('active');
     }
-    
+
     function showModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
     function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
     function showMessage(message) { document.getElementById('messageText').textContent = message; showModal('messageModal'); }
 
-    // --- Setup View: Exercises (Firestore) ---
     async function addExercise() {
         if (!currentUser) { showMessage("Please log in to add exercises."); return; }
         const nameInput = document.getElementById('exerciseName');
@@ -616,7 +603,7 @@
         const exerciseId = document.getElementById('editExerciseId').value;
         const nameInput = document.getElementById('editExerciseNameInput');
         const metInput = document.getElementById('editExerciseMETInput');
-        
+
         const newName = nameInput.value.trim();
         const newMet = parseFloat(metInput.value);
 
@@ -629,11 +616,11 @@
             showMessage("Another exercise with this name already exists.");
             return;
         }
-        
+
         try {
             const updatedData = { name: newName, met: newMet };
             await userCollections.exercises().doc(exerciseId).update(updatedData);
-            
+
             const exerciseIndex = appData.exercises.findIndex(ex => ex.id === exerciseId);
             if (exerciseIndex > -1) {
                 appData.exercises[exerciseIndex] = { ...appData.exercises[exerciseIndex], ...updatedData };
@@ -653,7 +640,6 @@
         }
     }
 
-
     async function deleteExercise(exerciseId) {
         if (!currentUser) { showMessage("Please log in."); return; }
         if (!confirm("Delete this exercise? It will be removed from schedule/logs if referenced by ID (name reference in logs will remain).")) return;
@@ -661,14 +647,13 @@
         try {
             await userCollections.exercises().doc(exerciseId).delete();
             appData.exercises = appData.exercises.filter(ex => ex.id !== exerciseId);
-            
+
             Object.keys(appData.schedule).forEach(day => {
                 if (Array.isArray(appData.schedule[day])) {
                      appData.schedule[day] = appData.schedule[day].filter(item => item.exerciseId !== exerciseId);
                 }
             });
             await userCollections.schedule().doc('weeklyPlan').set(appData.schedule);
-
 
             renderExerciseList();
             renderWeeklySchedule(); 
@@ -680,7 +665,6 @@
         }
     }
 
-    // --- Setup View: Weekly Schedule (Firestore & Drag-and-Drop) ---
     async function saveScheduleToFirestore() {
         if (!currentUser) return;
         try {
@@ -690,10 +674,10 @@
             showMessage("Failed to save schedule: " + error.message);
         }
     }
-    
+
     function renderWeeklySchedule() {
         const container = document.getElementById('weeklyScheduleContainer');
-        container.innerHTML = ''; // Clear existing day cards
+        container.innerHTML = ''; 
         DAYS_OF_WEEK.forEach(day => {
             const dayCard = document.createElement('div');
             dayCard.className = 'bg-gray-50 p-4 rounded-lg shadow-sm';
@@ -701,20 +685,20 @@
                                  <ul id="schedule-${day.toLowerCase()}" class="space-y-1 schedule-list min-h-[30px]"></ul> 
                                  <button onclick="openAddExerciseToDayModal('${day}')" class="w-full mt-3 bg-indigo-100 text-indigo-700 p-2 rounded-md hover:bg-indigo-200 transition text-sm">Add Exercise to ${day}</button>`;
             container.appendChild(dayCard);
-            
+
             const ul = dayCard.querySelector(`#schedule-${day.toLowerCase()}`);
             ul.addEventListener('dragover', handleDragOver);
-            ul.addEventListener('drop', (event) => handleDrop(event, day)); // Pass the day name
+            ul.addEventListener('drop', (event) => handleDrop(event, day)); 
 
             renderScheduledExercisesForDay(day);
         });
     }
-    
+
     function renderScheduledExercisesForDay(day) {
         const listId = `schedule-${day.toLowerCase()}`;
         const ul = document.getElementById(listId);
         if (!ul) return; 
-        ul.innerHTML = ''; // Clear existing items before re-rendering
+        ul.innerHTML = ''; 
         const daySchedule = appData.schedule[day] || [];
 
         if (daySchedule.length === 0) {
@@ -725,9 +709,9 @@
                 const li = document.createElement('li');
                 li.className = 'text-sm p-2 bg-white rounded shadow-xs flex justify-between items-center cursor-grab';
                 li.setAttribute('draggable', true);
-                li.dataset.index = index; // Store current index
-                li.dataset.day = day;     // Store current day
-                li.dataset.exerciseId = item.exerciseId; // Store exercise ID for data retrieval
+                li.dataset.index = index; 
+                li.dataset.day = day;     
+                li.dataset.exerciseId = item.exerciseId; 
 
                 if (exercise) {
                     li.innerHTML = `<span>${exercise.name} (${item.sets}s x ${item.reps}r)</span>
@@ -743,16 +727,14 @@
         }
     }
 
-    // Drag and Drop Handlers for Schedule
     function handleDragStart(event) {
-        draggedLiElement = event.target; // The LI element
+        draggedLiElement = event.target; 
         dragSourceDay = event.target.dataset.day;
         dragSourceIndex = parseInt(event.target.dataset.index);
-        
-        event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', event.target.dataset.exerciseId); // Set some data (exerciseId)
 
-        // Add styling to the dragged item (timeout for browser to pick up drag image)
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', event.target.dataset.exerciseId); 
+
         setTimeout(() => {
             draggedLiElement.classList.add('dragging-item');
         }, 0);
@@ -762,67 +744,62 @@
         if (draggedLiElement) {
             draggedLiElement.classList.remove('dragging-item');
         }
-        // Clean up any placeholders that might be left
+
         document.querySelectorAll('.drag-over-placeholder').forEach(el => el.remove());
-        
+
         draggedLiElement = null;
         dragSourceDay = null;
         dragSourceIndex = -1;
     }
 
     function handleDragOver(event) {
-        event.preventDefault(); // Necessary to allow dropping
+        event.preventDefault(); 
         event.dataTransfer.dropEffect = 'move';
 
-        const targetUl = event.currentTarget; // The UL being dragged over
-        // Only allow dropping within the same day's list for this implementation
-        const currentDragOverDay = targetUl.id.split('-')[1]; // e.g. "monday"
+        const targetUl = event.currentTarget; 
+
+        const currentDragOverDay = targetUl.id.split('-')[1]; 
         const properDragOverDayName = DAYS_OF_WEEK.find(d => d.toLowerCase() === currentDragOverDay);
 
         if (dragSourceDay !== properDragOverDayName) {
-             // Optional: Add visual cue that drop is not allowed here or simply do nothing
+
             return;
         }
 
-
-        // Remove existing placeholders to avoid duplicates
         targetUl.querySelectorAll('.drag-over-placeholder').forEach(ph => ph.remove());
 
         const afterElement = getDragAfterElement(targetUl, event.clientY);
-        const placeholder = document.createElement('div'); // Use div for placeholder
+        const placeholder = document.createElement('div'); 
         placeholder.classList.add('drag-over-placeholder');
-        
-        if (afterElement == null) { // If no element to insert before, append to end
+
+        if (afterElement == null) { 
             targetUl.appendChild(placeholder);
         } else {
             targetUl.insertBefore(placeholder, afterElement);
         }
     }
-    
-    // Helper function to determine where to insert the dragged item
+
     function getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('li:not(.dragging-item)')]; // Get all LIs not being dragged
+        const draggableElements = [...container.querySelectorAll('li:not(.dragging-item)')]; 
 
         return draggableElements.reduce((closest, child) => {
             const box = child.getBoundingClientRect();
-            const offset = y - box.top - (box.height / 2); // Distance from mouse to center of child
-            // If offset is negative (mouse is above center) and closer than previous closest
+            const offset = y - box.top - (box.height / 2); 
+
             if (offset < 0 && offset > closest.offset) {
                 return { offset: offset, element: child };
             } else {
                 return closest;
             }
-        }, { offset: Number.NEGATIVE_INFINITY }).element; // Start with furthest possible negative offset
+        }, { offset: Number.NEGATIVE_INFINITY }).element; 
     }
 
-
-    async function handleDrop(event, targetDayName) { // targetDayName is passed from renderWeeklySchedule
+    async function handleDrop(event, targetDayName) { 
         event.preventDefault();
-        document.querySelectorAll('.drag-over-placeholder').forEach(el => el.remove()); // Clean up placeholder
+        document.querySelectorAll('.drag-over-placeholder').forEach(el => el.remove()); 
 
         if (!draggedLiElement || dragSourceDay !== targetDayName) {
-            // If dragging from a different day, or something went wrong, abort.
-            // Cross-day drag-and-drop is not implemented here for simplicity.
+
             if (dragSourceDay !== targetDayName && draggedLiElement) {
                 showMessage("Cross-day dragging is not supported. Please add/remove manually.");
             }
@@ -835,49 +812,41 @@
             return;
         }
 
-        // Get the actual data object of the dragged item
         const draggedItemData = scheduleArray[dragSourceIndex];
         if (!draggedItemData) {
             console.error("Dragged item data not found at source index:", dragSourceIndex);
             return;
         }
 
-        // Determine the new index for the dropped item
-        const targetUl = event.currentTarget; // The UL where item was dropped
+        const targetUl = event.currentTarget; 
         const afterElement = getDragAfterElement(targetUl, event.clientY);
         let newIndex;
 
-        if (afterElement == null) { // Dropped at the end of the list
+        if (afterElement == null) { 
             newIndex = scheduleArray.length; 
-        } else { // Dropped before 'afterElement'
+        } else { 
             newIndex = parseInt(afterElement.dataset.index);
         }
-        
-        // Remove item from its original position
+
         scheduleArray.splice(dragSourceIndex, 1);
 
-        // Adjust newIndex if the item was dragged from an earlier position to a later one
-        // within the same list, because splice has shifted indices.
         if (dragSourceIndex < newIndex) {
             newIndex--; 
         }
-        
-        // Insert item at its new position
+
         scheduleArray.splice(newIndex, 0, draggedItemData);
 
-        // Update Firestore and UI
         try {
             await saveScheduleToFirestore();
-            renderScheduledExercisesForDay(targetDayName); // Re-render only the affected day's list
+            renderScheduledExercisesForDay(targetDayName); 
             showMessage('Schedule reordered successfully!');
         } catch (error) {
             showMessage('Error reordering schedule: ' + error.message);
-            // Revert local changes and reload schedule from Firestore if save fails
-            await loadSchedule(); // This will reload the entire schedule
-            renderWeeklySchedule(); // Re-render all days to ensure consistency
+
+            await loadSchedule(); 
+            renderWeeklySchedule(); 
         }
     }
-
 
     function openAddExerciseToDayModal(day) {
         document.getElementById('modalDayName').textContent = day;
@@ -896,16 +865,16 @@
             showMessage("Select exercise and enter valid sets/reps."); return;
         }
         if (!appData.schedule[day]) appData.schedule[day] = [];
-        
+
         appData.schedule[day].push({ exerciseId, sets, reps });
         await saveScheduleToFirestore(); 
         renderScheduledExercisesForDay(day);
         closeModal('addExerciseToDayModal');
         showMessage("Exercise added to schedule.");
     }
-    
+
     async function removeExerciseFromDay(day, index) {
-        // Ensure index is a number, as it might come from dataset as string
+
         const numericIndex = parseInt(index);
         if (appData.schedule[day] && appData.schedule[day][numericIndex] !== undefined) {
             appData.schedule[day].splice(numericIndex, 1);
@@ -929,7 +898,7 @@
             if (modalSelect) selectsToPopulate.push(modalSelect);
             if (progressSelect) selectsToPopulate.push(progressSelect);
         }
-        
+
         selectsToPopulate.forEach(selectElement => {
             const currentValue = selectElement.value;
             selectElement.innerHTML = '<option value="">-- Select Exercise --</option>';
@@ -945,7 +914,6 @@
         });
     }
 
-    // --- Log Workout View (Firestore) ---
     function initWorkoutDate() {
         const dateInput = document.getElementById('workoutDate');
         if (!dateInput.value) dateInput.valueAsDate = new Date();
@@ -957,7 +925,7 @@
         container.innerHTML = '';
 
         if (!dateInput.value) { container.innerHTML = '<p class="text-gray-500">Select a date.</p>'; return; }
-        
+
         const selectedDate = new Date(dateInput.value + 'T00:00:00');
         const dayOfWeek = DAYS_OF_WEEK[selectedDate.getDay() === 0 ? 6 : selectedDate.getDay() -1];
         const scheduledExercises = appData.schedule[dayOfWeek] || [];
@@ -1029,7 +997,7 @@
         });
 
         if (loggedExercises.length === 0) { showMessage("No exercises with valid weights logged."); return; }
-        
+
         const userWeightKg = appData.userProfile.weightKg || 70;
         let averageMET = loggedExercises.reduce((sum, ex) => sum + (ex.met || 5), 0) / loggedExercises.length; 
         if (isNaN(averageMET) || averageMET === 0) averageMET = 5;
@@ -1047,7 +1015,7 @@
         try {
             const docRef = await userCollections.logs().add(newLog);
             appData.logs.unshift({ id: docRef.id, ...newLog }); 
-            
+
             document.getElementById('sessionDuration').value = '';
             renderDailyExercisesForLog(); 
             showMessage(`Workout saved! Total: ${totalSessionWeight}kg. Calories: ~${estimatedCaloriesBurned} kcal.`);
@@ -1058,7 +1026,6 @@
         }
     }
 
-    // --- User Profile (Firestore) ---
     async function saveUserProfile() {
         if (!currentUser) { showMessage("Please log in."); return; }
         const weight = parseFloat(document.getElementById('userWeight').value);
@@ -1074,11 +1041,10 @@
             showMessage("Failed to save profile: " + error.message);
         }
     }
-    
-    // --- Data Management (Export/Import/Clear for Firebase user) ---
+
     async function exportUserData() {
         if (!currentUser) { showMessage("Please log in to export data."); return; }
-        
+
         showMessage("Exporting data... this may take a moment.");
         try {
             const exercisesSnapshot = await userCollections.exercises().get();
@@ -1089,7 +1055,7 @@
 
             const logsSnapshot = await userCollections.logs().get();
             const userLogs = logsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
+
             const profileDoc = await userCollections.profile().doc('info').get();
             const userProfileData = profileDoc.exists ? profileDoc.data() : {};
 
@@ -1122,7 +1088,7 @@
         if (!currentUser) { showMessage("Please log in to import data."); return; }
         const fileInput = document.getElementById('importFile');
         if (fileInput.files.length === 0) { showMessage("Select a file."); return; }
-        
+
         const file = fileInput.files[0];
         const reader = new FileReader();
         reader.onload = async function(event) {
@@ -1151,7 +1117,7 @@
                         batch.set(userCollections.exercises().doc(), data); 
                     });
                 }
-                
+
                 if (importedData.schedule) {
                      batch.set(userCollections.schedule().doc('weeklyPlan'), importedData.schedule);
                 }
@@ -1178,7 +1144,7 @@
         };
         reader.readAsText(file);
     }
-    
+
     async function confirmClearUserAccountData() {
         if (!currentUser) { showMessage("Please log in."); return; }
         if (confirm("DANGER! This will delete ALL your exercises, schedule, logs, and profile data from this account. This action cannot be undone. Are you absolutely sure?")) {
@@ -1191,12 +1157,12 @@
 
                     const exercisesSnapshot = await userCollections.exercises().get();
                     exercisesSnapshot.forEach(doc => batch.delete(doc.ref));
-                    
+
                     const logsSnapshot = await userCollections.logs().get();
                     logsSnapshot.forEach(doc => batch.delete(doc.ref));
 
                     await batch.commit();
-                    
+
                     clearLocalDataCache(); 
                     resetUI(); 
                     await loadAllUserData(); 
@@ -1211,8 +1177,6 @@
         }
     }
 
-
-    // --- Dashboard View (Firestore data) ---
     function initDashboardMonth() {
         const monthInput = document.getElementById('dashboardMonth');
         const today = new Date();
@@ -1222,7 +1186,7 @@
     function getFilteredLogs() { 
         const monthYear = document.getElementById('dashboardMonth').value;
         if (!monthYear || !Array.isArray(appData.logs)) return [];
-        
+
         const [year, month] = monthYear.split('-').map(Number);
         return appData.logs.filter(log => {
             const logDate = new Date(log.date + 'T00:00:00'); 
@@ -1245,12 +1209,12 @@
         renderFrequentExercisesChart(filteredLogs);
         renderExerciseProgressChart();
     }
-    
+
     function renderCaloriesChart(logs) {
         const canvas = document.getElementById('caloriesChart');
         if (charts.calories) charts.calories.destroy();
         if (!logs || logs.length === 0) { if(canvas) canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height); return; }
-        
+
         const dailyCalories = {};
         logs.forEach(log => { dailyCalories[log.date] = (dailyCalories[log.date] || 0) + log.estimatedCaloriesBurned; });
         const sortedDates = Object.keys(dailyCalories).sort((a,b) => new Date(a) - new Date(b));
@@ -1306,7 +1270,7 @@
                 }
             });
         });
-        
+
         const sortedDates = Object.keys(tempLogData).sort((a,b) => new Date(a) - new Date(b));
         sortedDates.forEach(date => {
             exerciseData.dates.push(new Date(date+'T00:00:00').toLocaleDateString('en-US', {month: 'short', day: 'numeric'}));
